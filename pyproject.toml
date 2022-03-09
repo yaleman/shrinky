@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "shrinky"
+version = "0.0.1"
+description = "Shrinks images in the way I want"
+authors = ["James Hogkinson <james@terminaloutcomes.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+click = "^8.0.4"
+loguru = "^0.6.0"
+Pillow = "^9.0.1"
+
+[tool.poetry.dev-dependencies]
+pylint = "^2.12.2"
+pytest = "^7.0.1"
+mypy = "^0.931"
+black = "^22.1.0"
+types-Pillow = "^9.0.6"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[project.scripts]
+"shrinky" = 'shrinky.__main__:cli'
+[tool.poetry.scripts]
+'shrinky' = 'shrinky.__main__:cli'
