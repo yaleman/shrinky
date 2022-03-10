@@ -16,11 +16,13 @@ from . import new_filename, ShrinkyImage
     "--output",
     type=click.Path(exists=False, dir_okay=False, resolve_path=True, path_type=Path),
 )
-@click.option("-f", "--force", is_flag=True, help_text="Overwrite destination")
+@click.option("-q", "--quality", type=int, help="If JPEG, set quality.")
+@click.option("-f", "--force", is_flag=True, help="Overwrite destination")
 def cli(
     filename: Path = Path("~/"),
     output: Optional[Path]=None,
-    force: bool = False
+    force: bool = False,
+    quality: int = -1,
 ) -> bool:
     """Shrinky shrinks images in a way I like"""
 
@@ -39,9 +41,14 @@ def cli(
 
     image = ShrinkyImage(original_file)
 
-    image.resize_image(*image_dimensions)
+    # resize and store
+    image.image = image.resize_image(*image_dimensions)
 
-    image.write_image(output)
+    image.write_image(
+        output,
+        force_overwrite=force,
+        quality=quality,
+        )
 
     return True
 

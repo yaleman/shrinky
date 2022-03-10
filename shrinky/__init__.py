@@ -1,7 +1,7 @@
 """ shrinky module """
 
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional, Union
 
 from loguru import logger
 from PIL import Image
@@ -12,14 +12,17 @@ def new_filename(original_filename: Path) -> Path:
     """generates a new filename based on the path"""
     logger.debug("lol {}", original_filename)
 
-    shortname = original_filename.name
-    if "." not in shortname:
-        raise ValueError(f"No . in filename, can't work out extension: {shortname}")
-    extension = shortname.split(".")[-1]
-    basename = ".".join(shortname.split(".")[:-1])
+    extension = get_extension(original_filename)
+    basename = ".".join(original_filename.resolve().name.split(".")[:-1])
     newname = f"{basename}-shrink.{extension}"
 
     return Path(f"{original_filename.parent}/{newname}").resolve()
+
+def get_extension(filename: Path) -> str:
+    """ gets the file extension is a hacky way """
+    if "." not in filename.name:
+        raise ValueError("Can't have an extension when there's no dot!")
+    return filename.resolve().name.split(".")[-1]
 
 class ShrinkyImage:
     """ does all the things """
@@ -27,8 +30,8 @@ class ShrinkyImage:
     def __init__(self, source_path: Path):
         """ loads the image """
         self.source_path = source_path
-        self.source_image = Image.open(source_path.open('rb'))
-        logger.debug("Dims: {}x{}", self.source_image.width, self.source_image.height)
+        self.image = Image.open(source_path.open('rb'))
+        logger.debug("Dims: {}x{}", self.image.width, self.image.height)
 
 
     def resize_image(
@@ -37,9 +40,11 @@ class ShrinkyImage:
         new_height: int,
         source_image: Optional[Image.Image] = None,
         ) -> Image.Image:
-        """ resizes an image, potentially recreates it from scratch"""
+        """ resizes an image, doesn't modify the source image """
         if source_image is None:
-            source_image = self.source_image
+            source_image = self.image
+
+        tmpimage = source_image.copy()
 
         if source_image.width > new_width or source_image.height > new_height:
             logger.debug(
@@ -49,14 +54,34 @@ class ShrinkyImage:
                 new_width,
                 new_height,
             )
-            source_image.thumbnail((new_width, new_height))
-        return source_image
+            tmpimage.thumbnail((new_width, new_height))
+        return tmpimage
 
-    def write_image(self, new_filenmame: Path):
+
+    def write_image(self,
+        output_filename: Path,
+        force_overwrite: bool=False,
+        quality: int=-1
+        ) -> bool:
         """ writes the file to disk"""
-        with new_filenmame.open('wb') as output_image:
+        if output_filename.exists() and not force_overwrite:
+            logger.error("{} already exists, bailing", output_filename.resolve())
+            return False
+
+        args: Dict[str, Union[str, int]] = {}
+
+        if get_extension(output_filename).lower() in ("jpg", "jpeg"):
+            # set jpeg quality
+            if quality is not None and quality >= 0:
+                args["quality"] = quality
+
+            if self.image.mode != "RGB":
+                self.image = self.image.convert("RGB")
+
+        with output_filename.open('wb') as output_image:
             logger.info("Writing {}", output_image.name)
-            self.source_image.save(
+            self.image.save(
                 output_image,
-                self.source_image.format,
+                **args #type: ignore
             )
+        return True
