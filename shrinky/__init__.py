@@ -1,7 +1,7 @@
 """ shrinky module """
 
+import os
 from pathlib import Path
-# import re
 from typing import Dict, Optional, Tuple, Union
 
 from loguru import logger
@@ -47,7 +47,7 @@ class ShrinkyImage:
         self.source_path = source_path
         self.image = Image.open(source_path.open('rb'))
         logger.debug("Dims: {}x{}", self.image.width, self.image.height)
-
+        logger.info("Original file size: {}", os.stat(self.source_path.resolve()).st_size)
 
     def resize_image(
         self,
@@ -99,4 +99,7 @@ class ShrinkyImage:
                 output_image,
                 **args #type: ignore
             )
+
+        new_size = os.stat(output_filename.resolve()).st_size
+        logger.info("New size: {}", new_size )
         return True

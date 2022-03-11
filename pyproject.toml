@@ -26,4 +26,4 @@ build-backend = "poetry.core.masonry.api"
 [project.scripts]
 "shrinky" = 'shrinky.__main__:cli'
 [tool.poetry.scripts]
-'shrinky' = 'shrinky.__main__:cli'
+"shrinky" = 'shrinky.__main__:cli'
