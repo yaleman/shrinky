@@ -1,13 +1,29 @@
 """ CLI for shrinky """
 
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 from loguru import logger
 
 import click
 
-from . import new_filename, ShrinkyImage
+from . import new_filename, parse_geometry, ShrinkyImage
+
+DEFAULT_GEOMETRY = 2000
+
+def set_geometry(geometry_value: Optional[str]) -> Tuple[int, int]:
+    """ geometry handler """
+
+    if geometry_value is None:
+        return (DEFAULT_GEOMETRY,DEFAULT_GEOMETRY)
+
+    max_x, max_y = parse_geometry(geometry_value)
+    if max_x is None:
+        max_x = DEFAULT_GEOMETRY
+    if max_y is None:
+        max_y = DEFAULT_GEOMETRY
+    logger.debug("Setting geometry to {}x{}", max_x, max_y)
+    return (max_x, max_y)
 
 @click.command()
 @click.argument("filename", type=click.Path(exists=True, path_type=Path))
@@ -16,6 +32,7 @@ from . import new_filename, ShrinkyImage
     "--output",
     type=click.Path(exists=False, dir_okay=False, resolve_path=True, path_type=Path),
 )
+@click.option("-g", "--geometry", help="Geometry, 1x1, 1x, x1 etc.")
 @click.option("-q", "--quality", type=int, help="If JPEG, set quality.")
 @click.option("-f", "--force", is_flag=True, help="Overwrite destination")
 def cli(
@@ -23,10 +40,11 @@ def cli(
     output: Optional[Path]=None,
     force: bool = False,
     quality: int = -1,
+    geometry: Optional[str] = None,
 ) -> bool:
     """Shrinky shrinks images in a way I like"""
 
-    image_dimensions = (2000, 2000)
+    image_dimensions = set_geometry(geometry_value=geometry)
 
     if output is None:
         output = new_filename(filename)

@@ -1,12 +1,27 @@
 """ shrinky module """
 
 from pathlib import Path
-from typing import Dict, Optional, Union
+# import re
+from typing import Dict, Optional, Tuple, Union
 
 from loguru import logger
 from PIL import Image
 
+def parse_geometry(geometry_input: str) -> Tuple[Optional[int],Optional[int]]:
+    """ parse the geometry provided """
+    if "x" in geometry_input:
+        x_value, y_value = geometry_input.split("x")
+        if x_value == '':
+            x_result = None
+        else:
+            x_result = int(x_value)
 
+        if y_value == '':
+            y_result = None
+        else:
+            y_result = int(y_value)
+        return (x_result,y_result)
+    return (0,0)
 
 def new_filename(original_filename: Path) -> Path:
     """generates a new filename based on the path"""
