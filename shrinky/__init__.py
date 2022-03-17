@@ -7,55 +7,65 @@ from typing import Dict, Optional, Tuple, Union
 from loguru import logger
 from PIL import Image
 
-def parse_geometry(geometry_input: str) -> Tuple[Optional[int],Optional[int]]:
-    """ parse the geometry provided """
+
+def parse_geometry(geometry_input: str) -> Tuple[Optional[int], Optional[int]]:
+    """parse the geometry provided"""
     if "x" in geometry_input:
         x_value, y_value = geometry_input.split("x")
-        if x_value == '':
+        if x_value == "":
             x_result = None
         else:
             x_result = int(x_value)
 
-        if y_value == '':
+        if y_value == "":
             y_result = None
         else:
             y_result = int(y_value)
-        return (x_result,y_result)
-    return (0,0)
+        return (x_result, y_result)
+    return (0, 0)
 
-def new_filename(original_filename: Path) -> Path:
+
+def new_filename(original_filename: Path, output_type: Optional[str]) -> Path:
     """generates a new filename based on the path"""
-    logger.debug("lol {}", original_filename)
+    logger.debug(f"{original_filename=}")
 
-    extension = get_extension(original_filename)
     basename = ".".join(original_filename.resolve().name.split(".")[:-1])
-    newname = f"{basename}-shrink.{extension}"
+    if output_type is not None:
+        logger.debug("Setting output type to {}", output_type.lower())
+        newname = f"{basename}.{output_type.lower()}"
+    else:
+        extension = get_extension(original_filename)
+        newname = f"{basename}-shrink.{extension}"
 
     return Path(f"{original_filename.parent}/{newname}").resolve()
 
+
 def get_extension(filename: Path) -> str:
-    """ gets the file extension is a hacky way """
+    """gets the file extension is a hacky way"""
     if "." not in filename.name:
         raise ValueError("Can't have an extension when there's no dot!")
     return filename.resolve().name.split(".")[-1]
 
+
 class ShrinkyImage:
-    """ does all the things """
+    """does all the things"""
 
     def __init__(self, source_path: Path):
-        """ loads the image """
+        """loads the image"""
         self.source_path = source_path
-        self.image = Image.open(source_path.open('rb'))
+        self.image = Image.open(source_path.open("rb"))
         logger.debug("Dims: {}x{}", self.image.width, self.image.height)
-        logger.info("Original file size: {}", os.stat(self.source_path.resolve()).st_size)
+        logger.info(
+            "Original file size: {}", os.stat(self.source_path.resolve()).st_size
+        )
 
     def resize_image(
         self,
         new_width: int,
         new_height: int,
         source_image: Optional[Image.Image] = None,
-        ) -> Image.Image:
-        """ resizes an image, doesn't modify the source image """
+    ) -> Image.Image:
+        """resizes an image, doesn't modify the source image"""
         if source_image is None:
             source_image = self.image
 
@@ -72,13 +82,10 @@ class ShrinkyImage:
             tmpimage.thumbnail((new_width, new_height))
         return tmpimage
 
-
-    def write_image(self,
-        output_filename: Path,
-        force_overwrite: bool=False,
-        quality: int=-1
-        ) -> bool:
-        """ writes the file to disk"""
+    def write_image(
+        self, output_filename: Path, force_overwrite: bool = False, quality: int = -1
+    ) -> bool:
+        """writes the file to disk"""
         if output_filename.exists() and not force_overwrite:
             logger.error("{} already exists, bailing", output_filename.resolve())
             return False
@@ -93,13 +100,10 @@ class ShrinkyImage:
             if self.image.mode != "RGB":
                 self.image = self.image.convert("RGB")
 
-        with output_filename.open('wb') as output_image:
+        with output_filename.open("wb") as output_image:
             logger.info("Writing {}", output_image.name)
-            self.image.save(
-                output_image,
-                **args #type: ignore
-            )
+            self.image.save(output_image, **args)  # type: ignore
 
         new_size = os.stat(output_filename.resolve()).st_size
-        logger.info("New size: {}", new_size )
+        logger.info("New size: {}", new_size)
         return True

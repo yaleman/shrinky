@@ -11,11 +11,12 @@ from . import new_filename, parse_geometry, ShrinkyImage
 
 DEFAULT_GEOMETRY = 2000
 
+
 def set_geometry(geometry_value: Optional[str]) -> Tuple[int, int]:
-    """ geometry handler """
+    """geometry handler"""
 
     if geometry_value is None:
-        return (DEFAULT_GEOMETRY,DEFAULT_GEOMETRY)
+        return (DEFAULT_GEOMETRY, DEFAULT_GEOMETRY)
 
     max_x, max_y = parse_geometry(geometry_value)
     if max_x is None:
@@ -25,6 +26,7 @@ def set_geometry(geometry_value: Optional[str]) -> Tuple[int, int]:
     logger.debug("Setting geometry to {}x{}", max_x, max_y)
     return (max_x, max_y)
 
+
 @click.command()
 @click.argument("filename", type=click.Path(exists=True, path_type=Path))
 @click.option(
@@ -32,12 +34,14 @@ def set_geometry(geometry_value: Optional[str]) -> Tuple[int, int]:
     "--output",
     type=click.Path(exists=False, dir_okay=False, resolve_path=True, path_type=Path),
 )
+@click.option("-t", "--output-type", help="New file type (eg jpg, png etc")
 @click.option("-g", "--geometry", help="Geometry, 1x1, 1x, x1 etc.")
 @click.option("-q", "--quality", type=int, help="If JPEG, set quality.")
 @click.option("-f", "--force", is_flag=True, help="Overwrite destination")
-def cli(
+def cli(  # pylint: disable=too-many-arguments
     filename: Path = Path("~/"),
-    output: Optional[Path]=None,
+    output: Optional[Path] = None,
+    output_type: Optional[str] = None,
     force: bool = False,
     quality: int = -1,
     geometry: Optional[str] = None,
@@ -46,8 +50,8 @@ def cli(
 
     image_dimensions = set_geometry(geometry_value=geometry)
 
-    if output is None:
-        output = new_filename(filename)
+    if output is None or output_type is not None:
+        output = new_filename(filename, output_type)
 
     if output.exists() and not force:
         logger.error("{} already exists, bailing", output.resolve())
@@ -66,7 +70,7 @@ def cli(
         output,
         force_overwrite=force,
         quality=quality,
-        )
+    )
 
     return True
 
