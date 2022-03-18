@@ -7,7 +7,12 @@ from shrinky import new_filename, parse_geometry
 def test_new_filename():
     """ testing new fileanme """
     input_filename = Path("~/test.jpg").resolve()
-    assert new_filename(input_filename) == Path("~/test-shrink.jpg").resolve()
+    assert new_filename(input_filename, None) == Path("~/test-shrink.jpg").resolve()
+
+def test_new_filename_type():
+    """ testing new fileanme """
+    input_filename = Path("~/test.jpg").resolve()
+    assert new_filename(input_filename, "png") == Path("~/test.png").resolve()
 
 def test_parse_geometry():
     """ tests parse_geometry """
