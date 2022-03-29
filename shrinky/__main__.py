@@ -76,4 +76,5 @@ def cli(  # pylint: disable=too-many-arguments
 
 
 if __name__ == "__main__":
-    cli()
+    cli() # type: ignore
+    # TODO: wait for click to be re-typed to fix this

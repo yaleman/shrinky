@@ -27,3 +27,7 @@ build-backend = "poetry.core.masonry.api"
 "shrinky" = 'shrinky.__main__:cli'
 [tool.poetry.scripts]
 "shrinky" = 'shrinky.__main__:cli'
+
+[tool.pylint.MASTER]
+max-line-length=200
+disable="W0511"
