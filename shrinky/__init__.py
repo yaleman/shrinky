@@ -2,11 +2,14 @@
 
 import os
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Union
+import sys
+from typing import Any, Dict, Optional, Tuple, Union
 
+import click
 from loguru import logger
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
+DEFAULT_GEOMETRY = 2000
 
 def parse_geometry(geometry_input: str) -> Tuple[Optional[int], Optional[int]]:
     """parse the geometry provided"""
@@ -22,8 +25,22 @@ def parse_geometry(geometry_input: str) -> Tuple[Optional[int], Optional[int]]:
         else:
             y_result = int(y_value)
         return (x_result, y_result)
-    return (0, 0)
+    return (None, None)
 
+
+def set_geometry(geometry_value: Optional[str]) -> Tuple[int, int]:
+    """geometry handler"""
+
+    if geometry_value is None:
+        return (DEFAULT_GEOMETRY, DEFAULT_GEOMETRY)
+
+    max_x, max_y = parse_geometry(geometry_value)
+    if max_x is None or max_x == 0:
+        max_x = DEFAULT_GEOMETRY
+    if max_y is None or max_y == 0:
+        max_y = DEFAULT_GEOMETRY
+    logger.debug("Setting geometry to {}x{}", max_x, max_y)
+    return (max_x, max_y)
 
 def new_filename(original_filename: Path, output_type: Optional[str]) -> Path:
     """generates a new filename based on the path"""
@@ -34,11 +51,13 @@ def new_filename(original_filename: Path, output_type: Optional[str]) -> Path:
         logger.debug("Setting output type to {}", output_type.lower())
         newname = f"{basename}.{output_type.lower()}"
     else:
-        extension = get_extension(original_filename)
-        newname = f"{basename}-shrink.{extension}"
+        try:
+            extension = get_extension(original_filename)
+            newname = f"{basename}-shrink.{extension}"
+        except ValueError:
+            newname = f"{basename}-shrink.jpg"
 
     return Path(f"{original_filename.parent}/{newname}").resolve()
-
 
 def get_extension(filename: Path) -> str:
     """gets the file extension is a hacky way"""
@@ -46,14 +65,19 @@ def get_extension(filename: Path) -> str:
         raise ValueError("Can't have an extension when there's no dot!")
     return filename.resolve().name.split(".")[-1]
 
-
 class ShrinkyImage:
     """does all the things"""
 
     def __init__(self, source_path: Path):
         """loads the image"""
         self.source_path = source_path
-        self.image = Image.open(source_path.open("rb"))
+        try:
+            self.image = Image.open(source_path.open("rb"))
+        except UnidentifiedImageError as image_error:
+            logger.error("Pillow can't handle the file '{}', bailing.", source_path)
+            logger.error(image_error)
+            sys.exit(1)
+
         logger.debug("Dims: {}x{}", self.image.width, self.image.height)
         logger.info(
             "Original file size: {}", os.stat(self.source_path.resolve()).st_size
@@ -83,16 +107,21 @@ class ShrinkyImage:
         return tmpimage
 
     def write_image(
-        self, output_filename: Path, force_overwrite: bool = False, quality: int = -1
+        self, output_filename: Path,
+        quality: int = -1
     ) -> bool:
         """writes the file to disk"""
-        if output_filename.exists() and not force_overwrite:
-            logger.error("{} already exists, bailing", output_filename.resolve())
-            return False
+
+        try:
+            file_extension = get_extension(output_filename).lower()
+        except ValueError as extension_error:
+            logger.error(extension_error)
+            sys.exit(1)
+
 
         args: Dict[str, Union[str, int]] = {}
 
-        if get_extension(output_filename).lower() in ("jpg", "jpeg"):
+        if file_extension in ("jpg", "jpeg"):
             # set jpeg quality
             if quality is not None and quality >= 0:
                 args["quality"] = quality
@@ -107,3 +136,67 @@ class ShrinkyImage:
         new_size = os.stat(output_filename.resolve()).st_size
         logger.info("New size: {}", new_size)
         return True
+
+
+def setup_logging(
+    logger_object: Any,
+    debug: bool,
+    ) -> None:
+    """ sets up loguru """
+    logger_object.remove()
+    if debug:
+        logger_object.add(sink=sys.stdout, level="DEBUG")
+    else:
+        logger_object.add(sink=sys.stdout, level="INFO")
+
+
+@click.command()
+@click.argument("filename", type=click.Path(exists=False, path_type=Path))
+@click.option(
+    "-o",
+    "--output",
+    type=click.Path(exists=False, dir_okay=False, resolve_path=True, path_type=Path),
+)
+@click.option("-t", "--output-type", help="New file type (eg jpg, png etc")
+@click.option("-g", "--geometry", help="Geometry, 1x1, 1x, x1 etc.")
+@click.option("-q", "--quality", type=int, help="If JPEG, set quality.")
+@click.option("-f", "--force", is_flag=True, help="Overwrite destination")
+@click.option("--debug", "-d", is_flag=True,  help="Enable debug logging")
+def cli(  # pylint: disable=too-many-arguments
+    filename: Path = Path("~/"),
+    output: Optional[Path] = None,
+    output_type: Optional[str] = None,
+    force: bool = False,
+    quality: int = -1,
+    geometry: Optional[str] = None,
+    debug: bool=False,
+) -> bool:
+    """Shrinky shrinks images in a way I like"""
+
+    setup_logging(logger, debug)
+
+    image_dimensions = set_geometry(geometry_value=geometry)
+
+    if output is None or output_type is not None:
+        output = new_filename(filename, output_type)
+
+    if output.exists() and not force:
+        logger.error("{} already exists, bailing", output.resolve())
+        sys.exit(1)
+
+    original_file = Path(filename).resolve()
+    if not original_file.exists():
+        logger.error("Can't find {}, bailing", original_file)
+        sys.exit(1)
+
+    image = ShrinkyImage(original_file)
+
+    # resize and store
+    image.image = image.resize_image(*image_dimensions)
+
+    image.write_image(
+        output,
+        quality=quality,
+    )
+
+    return True
