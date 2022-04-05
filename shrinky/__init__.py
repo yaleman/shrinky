@@ -157,7 +157,7 @@ def setup_logging(
     "--output",
     type=click.Path(exists=False, dir_okay=False, resolve_path=True, path_type=Path),
 )
-@click.option("-t", "--output-type", help="New file type (eg jpg, png etc")
+@click.option("-t", "--output-type", help="New file type (eg jpg, png etc)")
 @click.option("-g", "--geometry", help="Geometry, 1x1, 1x, x1 etc.")
 @click.option("-q", "--quality", type=int, help="If JPEG, set quality.")
 @click.option("-f", "--force", is_flag=True, help="Overwrite destination")

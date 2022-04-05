@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "shrinky"
-version = "0.0.4"
+version = "0.0.5"
 description = "Shrinks images in the way I want"
 authors = ["James Hogkinson <james@terminaloutcomes.com>"]
 license = "MIT"
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"

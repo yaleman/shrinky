@@ -1,5 +1,13 @@
 # Shrinky Changelog
 
+## v0.0.5
+
+Setting the readme properly so it's usable on PyPi.
+
+## v0.0.4
+
+Initial publish to PyPi.
+
 ## v0.0.3
 
 Updated `click`.
