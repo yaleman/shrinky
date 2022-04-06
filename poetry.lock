@@ -377,7 +377,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "types-pillow"
-version = "9.0.10"
+version = "9.0.11"
 description = "Typing stubs for Pillow"
 category = "dev"
 optional = false
@@ -413,7 +413,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "56f98045c259c1d29378a531b53deef5adefeed2bbb581ba5a33e432bae24231"
+content-hash = "06e5e1e5a79514e4d6879d8102aa194de4a0a6c7a9a257184108a0c639bac93e"
 
 [metadata.files]
 astroid = [
@@ -728,8 +728,8 @@ tomli = [
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 types-pillow = [
-    {file = "types-Pillow-9.0.10.tar.gz", hash = "sha256:0cb08e1e724f26f1e187fe86a8304f77430113358734a7d417a19962202ae1c8"},
-    {file = "types_Pillow-9.0.10-py3-none-any.whl", hash = "sha256:f74a8680e6d2604ac798fe9717851e86e58fb743f2c37ad60fda4237e28a30fd"},
+    {file = "types-Pillow-9.0.11.tar.gz", hash = "sha256:99e306bbe1f97884bb6fe9ddb87b6715fca5a4a368dad42e9366f46aa5877ea7"},
+    {file = "types_Pillow-9.0.11-py3-none-any.whl", hash = "sha256:cef022f67b19e2750b1a709b3ebaeee2bc9f95c704c673b07d52c2e09267077f"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.1.1-py3-none-any.whl", hash = "sha256:21c85e0fe4b9a155d0799430b0ad741cdce7e359660ccbd8b530613e8df88ce2"},
