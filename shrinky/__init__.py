@@ -144,10 +144,13 @@ def setup_logging(
     ) -> None:
     """ sets up loguru """
     logger_object.remove()
+    format_string = "<level>{level: <8}</level> - <level>{message}</level>"
     if debug:
-        logger_object.add(sink=sys.stdout, level="DEBUG")
+        level="DEBUG"
+
     else:
-        logger_object.add(sink=sys.stdout, level="INFO")
+        level="INFO"
+    logger_object.add(sink=sys.stdout, format=format_string, level=level)
 
 
 @click.command()
@@ -161,6 +164,7 @@ def setup_logging(
 @click.option("-g", "--geometry", help="Geometry, 1x1, 1x, x1 etc.")
 @click.option("-q", "--quality", type=int, help="If JPEG, set quality.")
 @click.option("-f", "--force", is_flag=True, help="Overwrite destination")
+@click.option("--delete-source", is_flag=True, default=False, help="Delete the source file once done")
 @click.option("--debug", "-d", is_flag=True,  help="Enable debug logging")
 def cli(  # pylint: disable=too-many-arguments
     filename: Path = Path("~/"),
@@ -169,6 +173,7 @@ def cli(  # pylint: disable=too-many-arguments
     force: bool = False,
     quality: int = -1,
     geometry: Optional[str] = None,
+    delete_source: bool=False,
     debug: bool=False,
 ) -> bool:
     """Shrinky shrinks images in a way I like"""
@@ -199,4 +204,11 @@ def cli(  # pylint: disable=too-many-arguments
         quality=quality,
     )
 
+    if delete_source:
+        logger.info("Please confirm you want to remove {} (y/N):", original_file)
+        if input().strip().lower() == "y":
+            original_file.unlink()
+            logger.info("Deleted {}", original_file)
+        else:
+            logger.info("Cancelled at user's request.")
     return True

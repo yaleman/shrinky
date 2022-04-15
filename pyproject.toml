@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shrinky"
-version = "0.0.5"
+version = "0.0.6"
 description = "Shrinks images in the way I want"
 authors = ["James Hogkinson <james@terminaloutcomes.com>"]
 license = "MIT"

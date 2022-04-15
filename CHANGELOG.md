@@ -1,5 +1,9 @@
 # Shrinky Changelog
 
+## v0.0.6
+
+Added the option to delete the source file.
+
 ## v0.0.5
 
 Setting the readme properly so it's usable on PyPi.
