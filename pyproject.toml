@@ -17,7 +17,7 @@ pylint = "^2.13.7"
 pytest = "^7.1.2"
 mypy = "^0.950"
 black = "^22.1.0"
-types-Pillow = "^9.0.13"
+types-Pillow = "^9.0.14"
 bandit = "^1.7.4"
 coverage = "^6.3.2"
 
