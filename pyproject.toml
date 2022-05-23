@@ -19,7 +19,7 @@ mypy = "^0.950"
 black = "^22.1.0"
 types-Pillow = "^9.0.15"
 bandit = "^1.7.4"
-coverage = "^6.3.3"
+coverage = "^6.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
