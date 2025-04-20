@@ -8,7 +8,7 @@ Shrinks images in the way I want
 
 Install this library using `pip`:
 
-    $ python -m pip install shrinky
+    python -m pip install shrinky
 
 ## Usage
 
@@ -35,5 +35,4 @@ You'll end up with `example.jpg`.
 To contribute to this library, first checkout the code. Then create a new virtual environment:
 
     cd shrinky
-    poetry install
-    poetry run python -m shrinky etc etc
+    uv run shrinky etc etc

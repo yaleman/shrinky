@@ -1,36 +1,39 @@
-[tool.poetry]
+
+[project]
 name = "shrinky"
-version = "0.0.6"
+version = "0.0.7"
 description = "Shrinks images in the way I want"
-authors = ["James Hogkinson <james@terminaloutcomes.com>"]
-license = "MIT"
+authors = [{ name = "James Hogkinson", email = "james@terminaloutcomes.com" }]
+license = { text = "MIT" }
 readme = "README.md"
 
-[tool.poetry.dependencies]
-python = "^3.9"
-click = "^8.0.4"
-loguru = ">=0.6,<0.8"
-Pillow = ">=9.0.1,<12.0.0"
-
-[tool.poetry.dev-dependencies]
-pylint = "^3.0.1"
-pytest = "^8.0.0"
-mypy = "^1.0"
-black = "^25.1.0"
-types-Pillow = "^10.0.0"
-bandit = "^1.7.4"
-coverage = "^7.0"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires-python = "<4.0,>=3.12"
+dependencies = [
+    "click>=8.0.4",
+    "loguru>=0.7.3",
+    "Pillow>=11.2.1",
+    "pillow-avif-plugin>=1.5.1",
+]
 
 
 [project.scripts]
-"shrinky" = 'shrinky.__main__:cli'
-[tool.poetry.scripts]
-"shrinky" = 'shrinky.__main__:cli'
+"shrinky" = "shrinky.__main__:cli"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "mypy>=1.15.0",
+    "types-Pillow>=10.2.0",
+    "bandit>=1.7.4",
+    "coverage>=7.8.0",
+    "ruff>=0.11.6",
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
 
 [tool.pylint.MASTER]
-max-line-length=200
-disable="W0511"
+max-line-length = 200
+disable = "W0511"

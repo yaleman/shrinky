@@ -1,4 +1,4 @@
-""" shrinky module """
+"""shrinky module"""
 
 import os
 from pathlib import Path
@@ -10,6 +10,17 @@ from loguru import logger
 from PIL import Image, UnidentifiedImageError
 
 DEFAULT_GEOMETRY = 2000
+
+VALID_OUTPUT_TYPES = [
+    "jpg",
+    "png",
+    "gif",
+    "webp",
+    "avif",
+    "heic",
+    "heif",
+]
+
 
 def parse_geometry(geometry_input: str) -> Tuple[Optional[int], Optional[int]]:
     """parse the geometry provided"""
@@ -42,6 +53,7 @@ def set_geometry(geometry_value: Optional[str]) -> Tuple[int, int]:
     logger.debug("Setting geometry to {}x{}", max_x, max_y)
     return (max_x, max_y)
 
+
 def new_filename(original_filename: Path, output_type: Optional[str]) -> Path:
     """generates a new filename based on the path"""
     logger.debug(f"{original_filename=}")
@@ -53,11 +65,22 @@ def new_filename(original_filename: Path, output_type: Optional[str]) -> Path:
     else:
         try:
             extension = get_extension(original_filename)
+            if extension.lower() not in VALID_OUTPUT_TYPES:
+                logger.error(
+                    "Invalid output type {}, valid types are: {}",
+                    extension,
+                    VALID_OUTPUT_TYPES,
+                )
+                sys.exit(1)
             newname = f"{basename}-shrink.{extension}"
         except ValueError:
             newname = f"{basename}-shrink.jpg"
+            logger.error(
+                "Can't get extension for {}, setting to {}", original_filename, newname
+            )
 
     return Path(f"{original_filename.parent}/{newname}").resolve()
+
 
 def get_extension(filename: Path) -> str:
     """gets the file extension is a hacky way"""
@@ -65,10 +88,11 @@ def get_extension(filename: Path) -> str:
         raise ValueError("Can't have an extension when there's no dot!")
     return filename.resolve().name.split(".")[-1]
 
+
 class ShrinkyImage:
     """does all the things"""
 
-    def __init__(self, source_path: Path):
+    def __init__(self, source_path: Path) -> None:
         """loads the image"""
         self.source_path = source_path
         try:
@@ -106,10 +130,7 @@ class ShrinkyImage:
             tmpimage.thumbnail((new_width, new_height))
         return tmpimage
 
-    def write_image(
-        self, output_filename: Path,
-        quality: int = -1
-    ) -> bool:
+    def write_image(self, output_filename: Path, quality: int = -1) -> bool:
         """writes the file to disk"""
 
         try:
@@ -117,7 +138,6 @@ class ShrinkyImage:
         except ValueError as extension_error:
             logger.error(extension_error)
             sys.exit(1)
-
 
         args: Dict[str, Union[str, int]] = {}
 
@@ -141,15 +161,15 @@ class ShrinkyImage:
 def setup_logging(
     logger_object: Any,
     debug: bool,
-    ) -> None:
-    """ sets up loguru """
+) -> None:
+    """sets up loguru"""
     logger_object.remove()
     format_string = "<level>{level: <8}</level> - <level>{message}</level>"
     if debug:
-        level="DEBUG"
+        level = "DEBUG"
 
     else:
-        level="INFO"
+        level = "INFO"
     logger_object.add(sink=sys.stdout, format=format_string, level=level)
 
 
@@ -160,27 +180,43 @@ def setup_logging(
     "--output",
     type=click.Path(exists=False, dir_okay=False, resolve_path=True, path_type=Path),
 )
-@click.option("-t", "--output-type", help="New file type (eg jpg, png etc)")
+@click.option("-t", "--output-type", help="New file type (eg jpg, png avif etc)")
 @click.option("-g", "--geometry", help="Geometry, 1x1, 1x, x1 etc.")
 @click.option("-q", "--quality", type=int, help="If JPEG, set quality.")
 @click.option("-f", "--force", is_flag=True, help="Overwrite destination")
-@click.option("--delete-source", is_flag=True, default=False, help="Delete the source file once done")
-@click.option("--debug", "-d", is_flag=True,  help="Enable debug logging")
-def cli(  # pylint: disable=too-many-arguments
+@click.option(
+    "--delete-source",
+    is_flag=True,
+    default=False,
+    help="Delete the source file once done",
+)
+@click.option("--debug", "-d", is_flag=True, help="Enable debug logging")
+def cli(
     filename: Path = Path("~/"),
     output: Optional[Path] = None,
     output_type: Optional[str] = None,
     force: bool = False,
     quality: int = -1,
     geometry: Optional[str] = None,
-    delete_source: bool=False,
-    debug: bool=False,
+    delete_source: bool = False,
+    debug: bool = False,
 ) -> bool:
     """Shrinky shrinks images in a way I like"""
 
     setup_logging(logger, debug)
 
     image_dimensions = set_geometry(geometry_value=geometry)
+
+    if output_type is not None:
+        if output_type.lower() not in VALID_OUTPUT_TYPES:
+            logger.error(
+                "Invalid output type {}, valid types are: {}",
+                output_type,
+                VALID_OUTPUT_TYPES,
+            )
+            sys.exit(1)
+        else:
+            logger.debug("Output type is {}", output_type.lower())
 
     if output is None or output_type is not None:
         output = new_filename(filename, output_type)
@@ -189,10 +225,25 @@ def cli(  # pylint: disable=too-many-arguments
         logger.error("{} already exists, bailing", output.resolve())
         sys.exit(1)
 
+    if get_extension(output).lower() not in VALID_OUTPUT_TYPES:
+        logger.error(
+            "Invalid output type {}, valid types are: {}",
+            get_extension(output),
+            VALID_OUTPUT_TYPES,
+        )
+        sys.exit(1)
+
     original_file = Path(filename).resolve()
     if not original_file.exists():
         logger.error("Can't find {}, bailing", original_file)
         sys.exit(1)
+
+    # hacky workaround for the avif extension - https://github.com/python-pillow/Pillow/pull/5201
+    if (
+        get_extension(output).lower() == "avif"
+        and "avif" not in Image.registered_extensions()
+    ):
+        import pillow_avif  # type: ignore  # noqa: F401
 
     image = ShrinkyImage(original_file)
 
