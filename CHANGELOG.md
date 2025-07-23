@@ -1,5 +1,13 @@
 # Shrinky Changelog
 
+## v0.0.8
+
+Fixed HEIC/HEIF conversions.
+
+## v0.0.7
+
+Fixed some avif-related things
+
 ## v0.0.6
 
 Added the option to delete the source file.

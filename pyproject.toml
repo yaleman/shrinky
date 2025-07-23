@@ -1,7 +1,7 @@
 
 [project]
 name = "shrinky"
-version = "0.0.7"
+version = "0.0.8"
 description = "Shrinks images in the way I want"
 authors = [{ name = "James Hogkinson", email = "james@terminaloutcomes.com" }]
 license = { text = "MIT" }
@@ -9,10 +9,11 @@ readme = "README.md"
 
 requires-python = "<4.0,>=3.12"
 dependencies = [
-    "click>=8.0.4",
+    "click>=8.2.1",
     "loguru>=0.7.3",
     "Pillow>=11.2.1",
-    "pillow-avif-plugin>=1.5.1",
+    "pillow-avif-plugin>=1.5.2",
+    "pillow-heif>=1.0.0",
 ]
 
 
@@ -30,9 +31,8 @@ dev = [
 ]
 
 [build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
-
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.pylint.MASTER]
 max-line-length = 200

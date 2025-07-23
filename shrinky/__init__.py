@@ -8,6 +8,9 @@ from typing import Any, Dict, Optional, Tuple, Union
 import click
 from loguru import logger
 from PIL import Image, UnidentifiedImageError
+from pillow_heif import register_heif_opener  # type: ignore[import-untyped]
+
+register_heif_opener()
 
 DEFAULT_GEOMETRY = 2000
 
@@ -54,6 +57,16 @@ def set_geometry(geometry_value: Optional[str]) -> Tuple[int, int]:
     return (max_x, max_y)
 
 
+class InvalidOutputType(Exception):
+    """raised when the output type is invalid"""
+
+    def __init__(self, output_type: str) -> None:
+        super().__init__(
+            f"Invalid output type: {output_type}, valid types are: {VALID_OUTPUT_TYPES}"
+        )
+        self.output_type = output_type
+
+
 def new_filename(original_filename: Path, output_type: Optional[str]) -> Path:
     """generates a new filename based on the path"""
     logger.debug(f"{original_filename=}")
@@ -66,12 +79,7 @@ def new_filename(original_filename: Path, output_type: Optional[str]) -> Path:
         try:
             extension = get_extension(original_filename)
             if extension.lower() not in VALID_OUTPUT_TYPES:
-                logger.error(
-                    "Invalid output type {}, valid types are: {}",
-                    extension,
-                    VALID_OUTPUT_TYPES,
-                )
-                sys.exit(1)
+                raise InvalidOutputType(extension)
             newname = f"{basename}-shrink.{extension}"
         except ValueError:
             newname = f"{basename}-shrink.jpg"
@@ -100,7 +108,7 @@ class ShrinkyImage:
         except UnidentifiedImageError as image_error:
             logger.error("Pillow can't handle the file '{}', bailing.", source_path)
             logger.error(image_error)
-            sys.exit(1)
+            raise image_error
 
         logger.debug("Dims: {}x{}", self.image.width, self.image.height)
         logger.info(
@@ -137,7 +145,7 @@ class ShrinkyImage:
             file_extension = get_extension(output_filename).lower()
         except ValueError as extension_error:
             logger.error(extension_error)
-            sys.exit(1)
+            raise extension_error
 
         args: Dict[str, Union[str, int]] = {}
 
@@ -147,6 +155,7 @@ class ShrinkyImage:
                 args["quality"] = quality
 
             if self.image.mode != "RGB":
+                logger.debug("Image is not RGB: {}", self.image.mode)
                 self.image = self.image.convert("RGB")
 
         with output_filename.open("wb") as output_image:
@@ -243,7 +252,7 @@ def cli(
         get_extension(output).lower() == "avif"
         and "avif" not in Image.registered_extensions()
     ):
-        import pillow_avif  # type: ignore  # noqa: F401
+        import pillow_avif  # type: ignore  # noqa: F401,unused-import,import-outside-toplevel
 
     image = ShrinkyImage(original_file)
 
