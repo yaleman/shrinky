@@ -1,5 +1,9 @@
 # Shrinky Changelog
 
+## v0.0.9
+
+Updating dependencies.
+
 ## v0.0.8
 
 Fixed HEIC/HEIF conversions.

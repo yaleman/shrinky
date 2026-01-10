@@ -1,7 +1,7 @@
 
 [project]
 name = "shrinky"
-version = "0.0.8"
+version = "0.0.9"
 description = "Shrinks images in the way I want"
 authors = [{ name = "James Hogkinson", email = "james@terminaloutcomes.com" }]
 license = { text = "MIT" }
@@ -9,11 +9,11 @@ readme = "README.md"
 
 requires-python = "<4.0,>=3.12"
 dependencies = [
-    "click>=8.2.1",
+    "click>=8.3.1",
     "loguru>=0.7.3",
-    "Pillow>=11.2.1",
+    "Pillow>=12.1.0",
     "pillow-avif-plugin>=1.5.2",
-    "pillow-heif>=1.0.0",
+    "pillow-heif>=1.1.1",
 ]
 
 
